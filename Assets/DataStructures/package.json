@@ -1,0 +1,12 @@
+{
+    "name": "com.erdiizgi.datastructures",
+    "displayName": "Data Structures for Unity",
+    "version": "0.0.2",
+    "unity": "2018.1",
+    "description": "This package is planned to maintain a set of data structures for Unity.",
+    "keywords": [
+        "data structures",
+        "unity"
+    ],
+    "category": "Unity"
+}
