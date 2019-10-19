@@ -3,14 +3,9 @@ using System.Collections.Generic;
 
 namespace DataStructures.FibonacciHeap
 {
-    /// <summary>
-    /// Fibonacci Heap realization. Uses generic type T for data storage and TKey as a key type.
-    /// </summary>
-    /// <typeparam name="T">Type of the stored objects.</typeparam>
-    /// <typeparam name="TKey">Type of the object key. Should implement IComparable.</typeparam>
-    public class FibonacciHeap<T, TKey> where TKey : IComparable<TKey>
+    public class FibonacciHeap<T, TKey> : IFibonacciHeap<T, TKey> where TKey : IComparable<TKey>
     {
-        private static readonly double OneOverLogPhi = 1.0 / Math.Log((1.0 + Math.Sqrt(5.0)) / 2.0);
+        private readonly double OneOverLogPhi = 1.0 / Math.Log((1.0 + Math.Sqrt(5.0)) / 2.0);
 
         /// <summary>
         /// Minimum (starting) node of the heap.
@@ -20,10 +15,9 @@ namespace DataStructures.FibonacciHeap
         /// <summary>
         /// The nodes quantity.
         /// </summary>
-        private int nNodes;
+        private int nodesCount;
         private readonly TKey minKeyValue;
 
-        #region Constructors
         /// <summary>
         /// Initializes the new instance of the Heap.
         /// </summary>
@@ -32,30 +26,18 @@ namespace DataStructures.FibonacciHeap
         {
             this.minKeyValue = minKeyValue;
         }
-        #endregion
 
-        /// <summary>
-        /// Identifies whatever heap is empty.
-        /// </summary>
-        /// <returns>true if heap is empty - contains no elements.</returns>
         public bool IsEmpty()
         {
             return minNode == null;
         }
 
-        /// <summary>
-        /// Removes all the elements from the heap.
-        /// </summary>
         public void Clear()
         {
             minNode = null;
-            nNodes = 0;
+            nodesCount = 0;
         }
 
-        /// <summary>
-        /// Decreases the key of a node.
-        /// O(1) amortized.
-        /// </summary>
         public void DecreaseKey(FibonacciHeapNode<T, TKey> x, TKey k)
         {
             if (k.CompareTo(x.Key) > 0)
@@ -79,10 +61,6 @@ namespace DataStructures.FibonacciHeap
             }
         }
 
-        /// <summary>
-        /// Deletes a node from the heap.
-        /// O(log n)
-        /// </summary>
         public void Delete(FibonacciHeapNode<T, TKey> x)
         {
             // make newParent as small as possible
@@ -92,10 +70,6 @@ namespace DataStructures.FibonacciHeap
             RemoveMin();
         }
 
-        /// <summary>
-        /// Inserts a new node with its key.
-        /// O(1)
-        /// </summary>
         public void Insert(FibonacciHeapNode<T, TKey> node)
         {
             // concatenate node into min list
@@ -116,24 +90,14 @@ namespace DataStructures.FibonacciHeap
                 minNode = node;
             }
 
-            nNodes++;
+            nodesCount++;
         }
 
-        /// <summary>
-        /// Returns the smalles node of the heap.
-        /// O(1)
-        /// </summary>
-        /// <returns></returns>
         public FibonacciHeapNode<T, TKey> Min()
         {
             return minNode;
         }
 
-        /// <summary>
-        /// Removes the smalles node of the heap.
-        /// O(log n) amortized
-        /// </summary>
-        /// <returns></returns>
         public FibonacciHeapNode<T, TKey> RemoveMin()
         {
             FibonacciHeapNode<T, TKey> minNode = this.minNode;
@@ -179,57 +143,55 @@ namespace DataStructures.FibonacciHeap
                 }
 
                 // decrement size of heap
-                nNodes--;
+                nodesCount--;
             }
 
             return minNode;
         }
 
-        /// <summary>
-        /// The number of nodes. O(1)
-        /// </summary>
-        /// <returns></returns>
         public int Size()
         {
-            return nNodes;
+            return nodesCount;
         }
 
         /// <summary>
         /// Joins two heaps. O(1)
         /// </summary>
-        /// <param name="h1"></param>
-        /// <param name="h2"></param>
+        /// <param name="h1">Heap one</param>
+        /// <param name="h2">Heap two</param>
         /// <returns></returns>
         public static FibonacciHeap<T, TKey> Union(FibonacciHeap<T, TKey> h1, FibonacciHeap<T, TKey> h2)
         {
-            var h = new FibonacciHeap<T, TKey>(h1.minKeyValue.CompareTo(h2.minKeyValue) < 0 ? h1.minKeyValue : h2.minKeyValue);
-
-            if ((h1 != null) && (h2 != null))
+            var h = new FibonacciHeap<T, TKey>(
+                h1.minKeyValue.CompareTo(h2.minKeyValue) < 0
+                ? h1.minKeyValue
+                : h2.minKeyValue)
             {
-                h.minNode = h1.minNode;
+                minNode = h1.minNode
+            };
 
-                if (h.minNode != null)
+            if (h.minNode != null)
+            {
+                if (h2.minNode != null)
                 {
-                    if (h2.minNode != null)
-                    {
-                        h.minNode.Right.Left = h2.minNode.Left;
-                        h2.minNode.Left.Right = h.minNode.Right;
-                        h.minNode.Right = h2.minNode;
-                        h2.minNode.Left = h.minNode;
+                    h.minNode.Right.Left = h2.minNode.Left;
+                    h2.minNode.Left.Right = h.minNode.Right;
+                    h.minNode.Right = h2.minNode;
+                    h2.minNode.Left = h.minNode;
 
-                        if (h2.minNode.Key.CompareTo(h1.minNode.Key) < 0)
-                        {
-                            h.minNode = h2.minNode;
-                        }
+                    if (h2.minNode.Key.CompareTo(h1.minNode.Key) < 0)
+                    {
+                        h.minNode = h2.minNode;
                     }
                 }
-                else
-                {
-                    h.minNode = h2.minNode;
-                }
-
-                h.nNodes = h1.nNodes + h2.nNodes;
             }
+            else
+            {
+                h.minNode = h2.minNode;
+            }
+
+            h.nodesCount = h1.nodesCount + h2.nodesCount;
+
 
             return h;
         }
@@ -262,7 +224,7 @@ namespace DataStructures.FibonacciHeap
 
         protected void Consolidate()
         {
-            int arraySize = ((int)Math.Floor(Math.Log(nNodes) * OneOverLogPhi)) + 1;
+            int arraySize = ((int)Math.Floor(Math.Log(nodesCount) * OneOverLogPhi)) + 1;
 
             var array = new List<FibonacciHeapNode<T, TKey>>(arraySize);
 
@@ -398,7 +360,7 @@ namespace DataStructures.FibonacciHeap
             minNode.Right = x;
             x.Right.Left = x;
 
-            // set parent[newParent] to nil
+            // set parent[newParent] to null
             x.Parent = null;
 
             // set mark[newParent] to false
